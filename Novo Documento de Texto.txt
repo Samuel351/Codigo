@@ -1,0 +1,182 @@
+using UnityEngine;
+using System;
+using System.Collections;
+using UnityEngine.Audio;
+
+public class Historia : MonoBehaviour
+{
+    [SerializeField] AudioMixerGroup mixer;
+    public Sound[] Vetor1;
+    private Sound som;
+    public Sound[] Vetor2;
+    private Sound som2;
+    private int historia = 0, direita = 0, esquerda = 1;
+    private bool verificacao = false, verificacao2 = false, verificacao3 = false, verificacao4 = false;
+    private Coroutine coroutine;
+
+    public static Historia instance;
+
+    void Awake()
+    {
+
+        if (instance == null)
+            instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(gameObject);
+        foreach (Sound som in Vetor1)
+        {
+            som.source = gameObject.AddComponent<AudioSource>();
+            som.source.clip = som.clip;
+            som.source.volume = Sound.volume;
+        }
+        foreach (Sound som2 in Vetor2)
+        {
+            som2.source = gameObject.AddComponent<AudioSource>();
+            som2.source.clip = som2.clip;
+            som2.source.volume = Sound.volume;
+        }
+        Narracao(historia);
+        Escolha(direita);
+        direita = 2;
+        historia++;
+        verificacao2 = false;
+        Update();
+    }
+
+
+    // Funções que buscam os aúdios no vetores por ID
+    public void Narracao(int id)
+    {
+        som = Array.Find(Vetor1, sound => sound.ID == id);
+        if (som == null)
+        {
+            Debug.LogWarning("O som: " + id + " não foi encontrado!");
+            return;
+        }
+        if (!verificacao)
+        {
+            som.source.Play();
+        }
+        if(som.source.isPlaying)
+        {
+            verificacao = true;
+        }
+    }
+
+    public void Escolha(int id)
+    {
+        som2 = Array.Find(Vetor2, som => som.ID == id);
+        if (som2 == null)
+        {
+            Debug.LogWarning("O som: " + id + " não foi encontrado!");
+            return;
+        }
+        if (!verificacao2)
+        {
+            som2.source.Play();
+            verificacao2 = true;
+        }
+    }
+
+    void Update()
+    {
+        StartCoroutine(Escolhas());
+    }
+
+    IEnumerator Escolhas()
+    {
+        if (!som.source.isPlaying && !som2.source.isPlaying)
+        {
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                Esquerda();
+                new WaitForSeconds(som2.source.clip.length);
+                verificacao = false;
+                Story();
+            }
+            else if (Input.GetKey(KeyCode.RightArrow))
+            {
+                Direita();
+                new WaitForSeconds(som2.source.clip.length);
+                verificacao = false;
+                Story();
+            }
+        }
+        yield return null;
+    }
+
+    // Aúdios da história
+    public void Story()
+    {
+        if (!som2.source.isPlaying)
+        {
+            if (historia == 1)
+            {
+                Narracao(historia);
+                historia++;
+                verificacao2 = false;
+                verificacao = true;
+            }
+            else if (historia == 2)
+            {
+                Narracao(historia);
+                historia++;
+                verificacao2 = false;
+                verificacao = true;
+
+            }
+            else if (historia == 3)
+            {
+                Narracao(historia);
+                historia++;
+                verificacao2 = false;
+                verificacao = true;
+            }
+        }
+    }
+
+    // Escolhas da Direita
+    public void Direita()
+    {
+        Debug.LogWarning("Direita: ");
+        if (direita == 2)
+        {
+            Escolha(direita);
+            direita = 4;
+            esquerda = 3;
+            Debug.Log("Valor da direita: " + direita);
+            verificacao = false;
+        }
+        else if (direita == 4)
+        {
+            Escolha(direita);
+            Debug.Log("Valor da direita: " + direita);
+            verificacao = false;
+        } 
+    }
+
+    // Escolhas da Esquerda
+    public void Esquerda()
+    {
+        Debug.LogWarning("Esquerda: ");
+        if (esquerda == 1)
+        {
+            Escolha(esquerda);
+            esquerda = 3;
+            direita = 4;
+            Debug.Log("Valor da esquerda: " + esquerda);
+            verificacao = false;
+        }
+        else if (esquerda == 3)
+        {
+            Escolha(direita);
+            Debug.Log("Valor da esquerda: " + direita);
+            verificacao = false;
+        }
+    }
+}
